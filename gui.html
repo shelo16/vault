@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vault</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='7' fill='%232f6f5e'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#141413; --panel:#1d1d1b; --ink:#ecebe6; --muted:#9b978e; --faint:#6c6962;
+  --line:#2e2d29; --accent:#72c2a8; --accent-ink:#0e1a16; --hl:#1f2c27; --danger:#e58a75;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 12px}
+button:hover{border-color:var(--faint)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:4px 8px}
+button.ghost:hover{color:var(--ink);background:var(--hl)}
+button.danger{color:var(--danger)}
+input,textarea{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;outline:none;width:100%}
+input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+[hidden]{display:none!important}
+
+/* lock screen */
+#lock{min-height:100%;display:grid;place-items:center;padding:24px}
+#lock form{width:min(340px,100%);display:grid;gap:12px;text-align:center}
+#lock .mark{width:48px;height:48px;margin:0 auto 4px;border-radius:14px;background:var(--accent);display:grid;place-items:center}
+#lock .mark i{width:18px;height:18px;border:3px solid var(--accent-ink);border-radius:50%}
+#lock h1{font-size:20px;margin:0}
+#lock p{margin:0;color:var(--muted)}
+#lockErr{color:var(--danger);min-height:1.4em}
+
+/* app */
+#app{display:grid;grid-template-rows:auto 1fr auto;height:100%}
+header{display:flex;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+header .search{flex:1;position:relative}
+header .search input{padding-left:34px;font-size:15px}
+header .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.layout{display:grid;grid-template-columns:200px 1fr;min-height:0}
+nav{border-right:1px solid var(--line);padding:12px 8px;overflow:auto}
+nav button{display:flex;justify-content:space-between;width:100%;border:0;background:transparent;text-align:left;padding:6px 10px;border-radius:6px;color:var(--muted)}
+nav button:hover{background:var(--hl);color:var(--ink)}
+nav button.on{background:var(--hl);color:var(--ink);font-weight:600}
+nav button span:last-child{color:var(--faint);font-variant-numeric:tabular-nums}
+main{overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-shrink:0}
+.card-h{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--line)}
+.card-h .name{flex:1;font-weight:600;overflow-wrap:anywhere}
+.card-h .name small{color:var(--muted);font-weight:400}
+.row{display:grid;grid-template-columns:minmax(80px,140px) 1fr auto;gap:12px;align-items:start;width:100%;text-align:left;border:0;border-radius:0;background:transparent;padding:8px 8px 8px 14px;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row:hover{background:var(--hl)}
+.row.sel{background:var(--hl);box-shadow:inset 3px 0 0 var(--accent)}
+.row .k{color:var(--muted);padding-top:1px}
+.row .v{font-family:var(--mono);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;min-width:0}
+.row .v.masked{letter-spacing:2px;color:var(--faint)}
+.row .acts{display:flex;gap:2px;opacity:.55}
+.row:hover .acts,.row.sel .acts{opacity:1}
+.row .hint{font-size:12px;color:var(--faint);padding:2px 6px}
+.empty{color:var(--muted);text-align:center;padding:48px 16px}
+.empty code{font-family:var(--mono);background:var(--panel);border:1px solid var(--line);padding:1px 6px;border-radius:5px}
+footer{display:flex;justify-content:space-between;gap:12px;padding:6px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+footer .err{color:var(--danger)}
+kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--muted)}
+
+#toast{position:fixed;left:50%;bottom:44px;transform:translate(-50%,12px);opacity:0;transition:.18s;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;pointer-events:none;max-width:90vw}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#toast.bad{background:var(--danger);color:#fff}
+
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:0;width:min(640px,94vw);max-height:90vh}
+dialog::backdrop{background:rgb(0 0 0/.35)}
+.dlg{display:grid;gap:12px;padding:18px}
+.dlg h2{margin:0;font-size:16px}
+.dlg label.lbl{display:grid;gap:4px;color:var(--muted);font-size:12px}
+.dlg label.lbl input{color:var(--ink);font-size:14px}
+.frow{display:grid;grid-template-columns:150px 1fr auto auto;gap:6px;align-items:start}
+.frow textarea{font-family:var(--mono);font-size:13px;resize:vertical;min-height:38px}
+.frow .sec{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px;padding-top:9px;white-space:nowrap}
+.dlg .bar{display:flex;gap:8px;justify-content:flex-end}
+.dlg .bar .grow{flex:1}
+#fields{display:grid;gap:6px;max-height:55vh;overflow:auto;padding:2px}
+
+@media (max-width:700px){
+  .layout{grid-template-columns:1fr}
+  nav{display:flex;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  nav button{width:auto;white-space:nowrap;gap:6px}
+  .row{grid-template-columns:1fr auto}
+  .row .k{grid-column:1/-1}
+  header .btn-label{display:none}
+  .frow{grid-template-columns:1fr auto auto}
+  .frow textarea{grid-column:1/-1;grid-row:2}
+}
+</style>
+</head>
+<body>
+
+<div id="lock" hidden>
+  <form id="lockForm" autocomplete="off">
+    <div class="mark"><i></i></div>
+    <h1>Vault is locked</h1>
+    <p id="lockSub">Enter your master password</p>
+    <input id="pw" type="password" placeholder="Master password" autocomplete="current-password">
+    <button class="primary" type="submit" id="unlockBtn">Unlock</button>
+    <div id="lockErr"></div>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" placeholder="Search — globex build, prod db pass, 10.0.0…" autocomplete="off" spellcheck="false">
+    </div>
+    <button id="newBtn" title="New entry (n)">+ <span class="btn-label">New</span></button>
+    <button id="syncBtn" title="Sync now">⟳ <span class="btn-label">Sync</span></button>
+    <button id="lockBtn" title="Lock">🔒 <span class="btn-label">Lock</span></button>
+  </header>
+  <div class="layout">
+    <nav id="groups"></nav>
+    <main id="list"></main>
+  </div>
+  <footer>
+    <span id="foot"></span>
+    <span><kbd>/</kbd> search · <kbd>↑</kbd><kbd>↓</kbd> move · <kbd>Enter</kbd> copy · <kbd>Esc</kbd> clear</span>
+  </footer>
+</div>
+
+<dialog id="editor">
+  <form class="dlg" id="edForm" method="dialog" autocomplete="off">
+    <h2 id="edTitle">New entry</h2>
+    <label class="lbl">Name — use / for groups, e.g. globex/api-server
+      <input id="edPath" required spellcheck="false">
+    </label>
+    <div id="fields"></div>
+    <div><button type="button" id="addField" class="ghost">+ Add field</button></div>
+    <div class="bar">
+      <button type="button" id="edDelete" class="danger">Delete</button>
+      <span class="grow"></span>
+      <button type="button" id="edCancel">Cancel</button>
+      <button type="submit" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const el = (tag, props = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') n.className = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else if (k === 'text') n.textContent = v;
+    else n.setAttribute(k, v);
+  }
+  for (const c of kids) if (c != null) n.append(c);
+  return n;
+};
+
+const token = (() => {
+  const t = location.hash.slice(1);
+  if (t) { sessionStorage.setItem('vt', t); history.replaceState(null, '', location.pathname); }
+  return t || sessionStorage.getItem('vt') || '';
+})();
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch('/api/' + path, {
+    method, headers: { 'X-Vault-Token': token, 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  let data = {};
+  try { data = await r.json(); } catch {}
+  if (!r.ok) { const e = new Error(data.error || r.statusText); e.status = r.status; throw e; }
+  return data;
+}
+
+let entries = [], rev = -1, group = '', sel = 0, rows = [], revealed = new Set(), st = {};
+const SECRET_RE = /pass|pwd|secret|token|api[-_]?key|private/i;
+const norm = s => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+
+let toastTimer;
+function toast(msg, bad = false) {
+  const t = $('#toast');
+  t.textContent = msg; t.className = 'on' + (bad ? ' bad' : '');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = bad ? 'bad' : '', bad ? 4000 : 1800);
+}
+
+function showLock(msg) {
+  $('#app').hidden = true; $('#lock').hidden = false;
+  if (msg !== undefined) $('#lockSub').textContent = msg;
+  $('#pw').value = ''; $('#pw').focus();
+}
+function showApp() { $('#lock').hidden = true; $('#app').hidden = false; }
+
+async function load() {
+  const d = await api('entries');
+  entries = d.entries;
+  render();
+}
+
+function groupsOf() {
+  const m = new Map();
+  for (const e of entries) {
+    const g = e.path.includes('/') ? e.path.split('/')[0] : '(no group)';
+    m.set(g, (m.get(g) || 0) + 1);
+  }
+  return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+function renderGroups() {
+  const nav = $('#groups'); nav.replaceChildren();
+  const mk = (name, label, n) => el('button', { class: group === name ? 'on' : '', onclick: () => { group = name; sel = 0; render(); } },
+    el('span', { text: label }), el('span', { text: String(n) }));
+  nav.append(mk('', 'All', entries.length));
+  for (const [g, n] of groupsOf()) nav.append(mk(g, g, n));
+}
+
+function matches() {
+  const toks = $('#q').value.split(/\s+/).map(norm).filter(Boolean);
+  const out = [];
+  for (const e of entries) {
+    const g = e.path.includes('/') ? e.path.split('/')[0] : '(no group)';
+    if (group && g !== group) continue;
+    if (!toks.length || toks.every(t => norm(e.path).includes(t))) { out.push({ e, fields: e.fields.map((_, i) => i) }); continue; }
+    const fi = [];
+    e.fields.forEach((f, i) => {
+      const hay = norm(e.path + '/' + f.k) + (f.s ? '' : norm(f.v));
+      if (toks.every(t => hay.includes(t))) fi.push(i);
+    });
+    if (fi.length) out.push({ e, fields: fi });
+  }
+  return out;
+}
+
+function icon(d) {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.setAttribute('width', '15'); s.setAttribute('height', '15'); s.setAttribute('viewBox', '0 0 24 24');
+  s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2');
+  s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round');
+  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', d); s.append(p);
+  return s;
+}
+const EYE = 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6z';
+const COPY = 'M9 9h11v11H9zM5 15H4V4h11v1';
+const EDIT = 'M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4';
+
+function render() {
+  renderGroups();
+  const list = $('#list'); list.replaceChildren(); rows = [];
+  const res = matches();
+  if (!entries.length) {
+    list.append(el('div', { class: 'empty' },
+      el('p', { text: 'Your vault is empty.' }),
+      el('p', {}, 'Click ', el('b', { text: '+ New' }), ' or import from the terminal: ', el('code', { text: 'vault import notes.txt' }))));
+    return;
+  }
+  if (!res.length) { list.append(el('div', { class: 'empty', text: 'Nothing matches.' })); return; }
+  for (const { e, fields } of res) {
+    const parts = e.path.split('/'); const leaf = parts.pop();
+    const card = el('div', { class: 'card' },
+      el('div', { class: 'card-h' },
+        el('div', { class: 'name' }, parts.length ? el('small', { text: parts.join('/') + ' / ' }) : null, leaf),
+        el('button', { class: 'ghost', title: 'Edit', onclick: () => openEditor(e) }, icon(EDIT))));
+    for (const i of fields) {
+      const f = e.fields[i]; const id = e.path + '\u0000' + f.k;
+      const masked = f.s && !revealed.has(id);
+      const row = el('button', { class: 'row', title: 'Click to copy', onclick: ev => { if (!ev.target.closest('.acts')) copy(e, f); } },
+        el('span', { class: 'k', text: f.k }),
+        el('span', { class: 'v' + (masked ? ' masked' : ''), text: masked ? '••••••••••' : f.v }),
+        el('span', { class: 'acts' },
+          f.s ? el('span', { class: 'ghost hint', title: revealed.has(id) ? 'Hide' : 'Show',
+            onclick: ev => { ev.stopPropagation(); revealed.has(id) ? revealed.delete(id) : revealed.add(id); render(); } }, icon(EYE)) : null,
+          el('span', { class: 'hint' }, icon(COPY))));
+      row.dataset.idx = rows.length;
+      rows.push({ row, e, f });
+      card.append(row);
+    }
+    list.append(card);
+  }
+  if (sel >= rows.length) sel = rows.length - 1;
+  if (sel < 0) sel = 0;
+  highlight(false);
+}
+
+function highlight(scroll = true) {
+  rows.forEach((r, i) => r.row.classList.toggle('sel', i === sel));
+  if (scroll && rows[sel]) rows[sel].row.scrollIntoView({ block: 'nearest' });
+}
+
+async function copy(e, f) {
+  try {
+    const r = await api('copy', 'POST', { path: e.path, key: f.k });
+    toast(`Copied ${f.k}` + (r.ttl ? ` · clears in ${r.ttl}s` : ''));
+  } catch (err) {
+    if (err.status === 423) return refreshStatus();
+    try { await navigator.clipboard.writeText(f.v); toast(`Copied ${f.k} (won't auto-clear)`); }
+    catch { toast('Could not copy: ' + err.message, true); }
+  }
+}
+
+function footText() {
+  const f = $('#foot'); f.replaceChildren();
+  let txt = `${entries.length} entries`;
+  if (st.syncing) txt += ' · syncing…';
+  else if (!st.hasRemote) txt += ' · local only (no sync repo set)';
+  else if (st.syncError) { f.append(txt + ' · '); f.append(el('span', { class: 'err', text: 'sync failed: ' + st.syncError })); return; }
+  else if (st.lastSync) txt += ' · synced ' + ago(st.lastSync);
+  f.textContent = txt;
+}
+function ago(ms) {
+  const s = Math.round((Date.now() - ms) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.round(s / 60) + ' min ago';
+  return Math.round(s / 3600) + ' h ago';
+}
+
+async function refreshStatus() {
+  try { st = await api('status'); }
+  catch (e) {
+    showLock(e.status === 401 ? 'This page is out of date — run `vault gui` again.' : 'Vault helper stopped — run `vault gui` again.');
+    $('#pw').disabled = $('#unlockBtn').disabled = true; return;
+  }
+  if (!st.unlocked) { if ($('#lock').hidden) showLock('Locked. Enter your master password'); rev = -1; return; }
+  if ($('#app').hidden) { showApp(); $('#q').focus(); }
+  if (st.rev !== rev) { rev = st.rev; await load(); }
+  footText();
+}
+
+/* ---- editor ---- */
+let editing = null;
+function fieldRow(f = { k: '', v: '', s: false }) {
+  const key = el('input', { placeholder: 'field (url, password…)', spellcheck: 'false' }); key.value = f.k;
+  const val = el('textarea', { rows: String(Math.min(8, Math.max(1, f.v.split('\n').length))), placeholder: 'value', spellcheck: 'false' }); val.value = f.v;
+  const sec = el('input', { type: 'checkbox' }); sec.checked = !!f.s;
+  key.addEventListener('input', () => { if (SECRET_RE.test(key.value)) sec.checked = true; });
+  val.addEventListener('input', () => { val.rows = Math.min(8, Math.max(1, val.value.split('\n').length)); });
+  const row = el('div', { class: 'frow' }, key, val, el('label', { class: 'sec' }, sec, 'secret'),
+    el('button', { type: 'button', class: 'ghost', title: 'Remove field', onclick: () => row.remove() }, '✕'));
+  row._get = () => ({ k: key.value.trim(), v: val.value, s: sec.checked });
+  return row;
+}
+function openEditor(e) {
+  editing = e || null;
+  $('#edTitle').textContent = e ? 'Edit entry' : 'New entry';
+  $('#edPath').value = e ? e.path : (group && group !== '(no group)' ? group + '/' : '');
+  const box = $('#fields'); box.replaceChildren();
+  const fs = e ? e.fields : [{ k: 'url', v: '', s: false }, { k: 'username', v: '', s: false }, { k: 'password', v: '', s: true }];
+  for (const f of fs) box.append(fieldRow(f));
+  $('#edDelete').hidden = !e;
+  $('#editor').showModal();
+  (e ? box.querySelector('textarea') : $('#edPath')).focus();
+}
+$('#addField').onclick = () => { const r = fieldRow(); $('#fields').append(r); r.querySelector('input').focus(); };
+$('#edCancel').onclick = () => $('#editor').close();
+$('#edDelete').onclick = async () => {
+  if (!editing || !confirm(`Delete ${editing.path}?`)) return;
+  await save([{ path: editing.path, delete: true }], 'Deleted');
+};
+$('#edForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const path = $('#edPath').value.split('/').map(s => s.trim()).filter(Boolean).join('/');
+  if (!path) return toast('Give it a name', true);
+  const fields = [...$('#fields').children].map(r => r._get()).filter(f => f.k || f.v);
+  if (fields.some(f => !f.k)) return toast('Every field needs a name', true);
+  const clash = entries.find(x => x.path.toLowerCase() === path.toLowerCase());
+  if (clash && (!editing || clash.path.toLowerCase() !== editing.path.toLowerCase()) && !confirm(`${clash.path} already exists. Replace it?`)) return;
+  const chs = [];
+  if (editing && editing.path.toLowerCase() !== path.toLowerCase()) chs.push({ path: editing.path, delete: true });
+  chs.push({ path, fields });
+  await save(chs, 'Saved');
+});
+async function save(chs, msg) {
+  try {
+    const r = await api('apply', 'POST', { changes: chs });
+    $('#editor').close();
+    toast(r.syncError ? `${msg} here, but sync failed` : msg, !!r.syncError);
+    await refreshStatus();
+  } catch (e) { toast(e.message, true); }
+}
+
+/* ---- top bar & keys ---- */
+$('#q').addEventListener('input', () => { sel = 0; render(); });
+$('#newBtn').onclick = () => openEditor();
+$('#syncBtn').onclick = async () => {
+  $('#syncBtn').disabled = true;
+  try { await api('sync', 'POST'); toast('Synced'); }
+  catch (e) { toast(e.status === 423 ? 'Locked' : 'Sync failed: ' + e.message, true); }
+  $('#syncBtn').disabled = false; refreshStatus();
+};
+$('#lockBtn').onclick = async () => { await api('lock', 'POST').catch(() => {}); entries = []; revealed.clear(); showLock('Locked. Enter your master password'); };
+$('#lockForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  $('#lockErr').textContent = ''; $('#unlockBtn').disabled = true;
+  try { await api('unlock', 'POST', { password: $('#pw').value }); $('#pw').value = ''; await refreshStatus(); }
+  catch (e) { $('#lockErr').textContent = e.message; $('#pw').select(); }
+  $('#unlockBtn').disabled = false;
+});
+
+document.addEventListener('keydown', ev => {
+  if ($('#app').hidden || $('#editor').open) return;
+  const inSearch = document.activeElement === $('#q');
+  if (ev.key === '/' && !inSearch) { ev.preventDefault(); $('#q').focus(); $('#q').select(); return; }
+  if (ev.key === 'n' && !inSearch && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); openEditor(); return; }
+  if (ev.key === 'ArrowDown') { ev.preventDefault(); sel = Math.min(rows.length - 1, sel + 1); highlight(); }
+  else if (ev.key === 'ArrowUp') { ev.preventDefault(); sel = Math.max(0, sel - 1); highlight(); }
+  else if (ev.key === 'Enter' && inSearch && rows[sel]) { ev.preventDefault(); copy(rows[sel].e, rows[sel].f); }
+  else if (ev.key === 'Escape' && inSearch) { $('#q').value = ''; sel = 0; render(); }
+});
+
+setInterval(() => { if (!document.hidden) refreshStatus(); }, 5000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshStatus(); });
+if (!token) showLock('Open this page with `vault gui`.'); else refreshStatus();
+</script>
+</body>
+</html>

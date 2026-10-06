@@ -1,0 +1,29 @@
+# Example import file:  vault import sample.txt   (then delete the file)
+# Keys containing pass/secret/token/apikey/private are hidden automatically;
+# put ! before any other key to hide it.
+
+[acme/prod-db]
+username = appuser
+password = CHANGE_ME
+url = jdbc:sqlserver://10.0.0.5;database=APP;encrypt=true;
+
+[acme/staging-server]
+ssh = ssh root@10.0.0.12
+password = CHANGE_ME
+logs = docker logs -f api
+
+[acme/build]
+cmd = mvn clean install -DskipTests
+
+[acme/deploy-prod]
+note = """
+1. build with acme/build
+2. copy the jar to the server
+3. restart the service
+"""
+
+[personal/router]
+url = http://192.168.1.1
+user = admin
+password = CHANGE_ME
+!wifi-key = CHANGE_ME
