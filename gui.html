@@ -8,8 +8,8 @@
 <style>
 :root{
   color-scheme:dark;
-  --bg:#141413; --panel:#1d1d1b; --ink:#ecebe6; --muted:#9b978e; --faint:#6c6962;
-  --line:#2e2d29; --accent:#72c2a8; --accent-ink:#0e1a16; --hl:#1f2c27; --danger:#e58a75;
+  --bg:#141413;--panel:#1d1d1b;--ink:#ecebe6;--muted:#9b978e;--faint:#6c6962;
+  --line:#2e2d29;--accent:#72c2a8;--accent-ink:#0e1a16;--hl:#1f2c27;--danger:#e58a75;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif;
 }
@@ -20,6 +20,7 @@ button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 12px}
 button:hover{border-color:var(--faint)}
 button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.primary:disabled{opacity:.5}
 button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:4px 8px}
 button.ghost:hover{color:var(--ink);background:var(--hl)}
 button.danger{color:var(--danger)}
@@ -27,7 +28,7 @@ input,textarea{background:var(--panel);border:1px solid var(--line);border-radiu
 input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 [hidden]{display:none!important}
 
-/* lock screen */
+/* lock */
 #lock{min-height:100%;display:grid;place-items:center;padding:24px}
 #lock form{width:min(340px,100%);display:grid;gap:12px;text-align:center}
 #lock .mark{width:48px;height:48px;margin:0 auto 4px;border-radius:14px;background:var(--accent);display:grid;place-items:center}
@@ -36,24 +37,39 @@ input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color
 #lock p{margin:0;color:var(--muted)}
 #lockErr{color:var(--danger);min-height:1.4em}
 
-/* app */
+/* app shell */
 #app{display:grid;grid-template-rows:auto 1fr auto;height:100%}
 header{display:flex;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
 header .search{flex:1;position:relative}
 header .search input{padding-left:34px;font-size:15px}
 header .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--faint)}
-.layout{display:grid;grid-template-columns:200px 1fr;min-height:0}
-nav{border-right:1px solid var(--line);padding:12px 8px;overflow:auto}
-nav button{display:flex;justify-content:space-between;width:100%;border:0;background:transparent;text-align:left;padding:6px 10px;border-radius:6px;color:var(--muted)}
-nav button:hover{background:var(--hl);color:var(--ink)}
-nav button.on{background:var(--hl);color:var(--ink);font-weight:600}
-nav button span:last-child{color:var(--faint);font-variant-numeric:tabular-nums}
+.layout{display:grid;grid-template-columns:210px 1fr;min-height:0}
+
+/* nav tree */
+nav{border-right:1px solid var(--line);padding:8px 6px;overflow-y:auto;overflow-x:hidden}
+.nav-row{display:flex;align-items:center;width:100%;border:0;background:transparent;text-align:left;
+  padding:5px 8px;border-radius:6px;color:var(--muted);cursor:pointer;gap:0;user-select:none}
+.nav-row:hover{background:var(--hl);color:var(--ink)}
+.nav-row.on{background:var(--hl);color:var(--ink);font-weight:600}
+.nav-row .chev{width:14px;flex-shrink:0;font-size:9px;color:var(--faint);text-align:center;
+  transition:transform .17s;line-height:1;margin-right:2px}
+.nav-row.xpnd .chev{transform:rotate(90deg)}
+.nav-row .lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:6px}
+.nav-row .cnt{color:var(--faint);font-variant-numeric:tabular-nums;font-size:12px;flex-shrink:0}
+.nav-sub{overflow:hidden;max-height:0;transition:max-height .22s ease}
+.nav-sub.open{max-height:1200px}
+.nav-sub .nav-row{padding-left:22px}
+
+/* main list */
 main{overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-shrink:0}
+@keyframes fadein{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-shrink:0;animation:fadein .13s ease}
 .card-h{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--line)}
 .card-h .name{flex:1;font-weight:600;overflow-wrap:anywhere}
 .card-h .name small{color:var(--muted);font-weight:400}
-.row{display:grid;grid-template-columns:minmax(80px,140px) 1fr auto;gap:12px;align-items:start;width:100%;text-align:left;border:0;border-radius:0;background:transparent;padding:8px 8px 8px 14px;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:minmax(80px,140px) 1fr auto;gap:12px;align-items:start;
+  width:100%;text-align:left;border:0;border-radius:0;background:transparent;
+  padding:8px 8px 8px 14px;border-top:1px solid var(--line)}
 .row:first-of-type{border-top:0}
 .row:hover{background:var(--hl)}
 .row.sel{background:var(--hl);box-shadow:inset 3px 0 0 var(--accent)}
@@ -65,14 +81,17 @@ main{overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
 .row .hint{font-size:12px;color:var(--faint);padding:2px 6px}
 .empty{color:var(--muted);text-align:center;padding:48px 16px}
 .empty code{font-family:var(--mono);background:var(--panel);border:1px solid var(--line);padding:1px 6px;border-radius:5px}
+
 footer{display:flex;justify-content:space-between;gap:12px;padding:6px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
 footer .err{color:var(--danger)}
 kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--muted)}
 
-#toast{position:fixed;left:50%;bottom:44px;transform:translate(-50%,12px);opacity:0;transition:.18s;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;pointer-events:none;max-width:90vw}
+#toast{position:fixed;left:50%;bottom:44px;transform:translate(-50%,12px);opacity:0;transition:.18s;
+  background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;pointer-events:none;max-width:90vw}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 #toast.bad{background:var(--danger);color:#fff}
 
+/* dialogs */
 dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:0;width:min(640px,94vw);max-height:90vh}
 dialog::backdrop{background:rgb(0 0 0/.35)}
 .dlg{display:grid;gap:12px;padding:18px}
@@ -84,12 +103,41 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
 .frow .sec{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px;padding-top:9px;white-space:nowrap}
 .dlg .bar{display:flex;gap:8px;justify-content:flex-end}
 .dlg .bar .grow{flex:1}
-#fields{display:grid;gap:6px;max-height:55vh;overflow:auto;padding:2px}
+#fields{display:grid;gap:6px;max-height:50vh;overflow:auto;padding:2px}
 
-@media (max-width:700px){
+/* context menu */
+#ctx{position:fixed;z-index:9999;background:var(--panel);border:1px solid var(--line);border-radius:9px;
+  padding:4px;min-width:172px;box-shadow:0 6px 24px rgb(0 0 0/.55);display:none}
+#ctx.show{display:block}
+#ctx button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;
+  text-align:left;padding:6px 10px;border-radius:5px;color:var(--ink);font-size:13px}
+#ctx button:hover{background:var(--hl)}
+#ctx .ctx-sep{height:1px;background:var(--line);margin:3px 0}
+#ctx .ctx-danger{color:var(--danger)}
+
+/* help dialog */
+#helpDlg{width:min(560px,94vw)}
+.help-scroll{overflow-y:auto;max-height:72vh;padding:0 18px 18px}
+.hsec{margin-top:18px}
+.hsec h3{margin:0 0 8px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+.hrow{display:flex;gap:10px;align-items:baseline;padding:3px 0}
+.hrow .desc{color:var(--muted);font-size:13px}
+.htable{width:100%;border-collapse:collapse;font-size:13px}
+.htable tr+tr td{border-top:1px solid var(--line)}
+.htable td{padding:5px 8px 5px 0;vertical-align:top}
+.htable td:first-child{font-family:var(--mono);color:var(--accent);white-space:nowrap;padding-right:16px}
+.htable td:last-child{color:var(--muted)}
+.stag{display:inline-block;font-size:10px;padding:1px 5px;border-radius:4px;
+  background:color-mix(in srgb,var(--danger) 15%,transparent);color:var(--danger);margin-left:4px;vertical-align:middle}
+.hint-box{font-size:13px;color:var(--muted);margin:8px 0 0;line-height:1.6}
+.hint-box code{font-family:var(--mono);font-size:12px;background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--ink)}
+
+@media(max-width:700px){
   .layout{grid-template-columns:1fr}
-  nav{display:flex;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}
-  nav button{width:auto;white-space:nowrap;gap:6px}
+  nav{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  .nav-group{display:contents}
+  .nav-sub{display:none}
+  .nav-row{width:auto;white-space:nowrap}
   .row{grid-template-columns:1fr auto}
   .row .k{grid-column:1/-1}
   header .btn-label{display:none}
@@ -115,10 +163,11 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
   <header>
     <div class="search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" placeholder="Search — globex build, prod db pass, 10.0.0…" autocomplete="off" spellcheck="false">
+      <input id="q" placeholder="Search — globex build, prod db pass…" autocomplete="off" spellcheck="false">
     </div>
     <button id="newBtn" title="New entry (n)">+ <span class="btn-label">New</span></button>
     <button id="syncBtn" title="Sync now">⟳ <span class="btn-label">Sync</span></button>
+    <button id="helpBtn" title="Help &amp; shortcuts">? <span class="btn-label">Help</span></button>
     <button id="lockBtn" title="Lock">🔒 <span class="btn-label">Lock</span></button>
   </header>
   <div class="layout">
@@ -127,14 +176,15 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
   </div>
   <footer>
     <span id="foot"></span>
-    <span><kbd>/</kbd> search · <kbd>↑</kbd><kbd>↓</kbd> move · <kbd>Enter</kbd> copy · <kbd>Esc</kbd> clear</span>
+    <span><kbd>/</kbd> search · <kbd>↑↓</kbd> move · <kbd>Enter</kbd> copy · <kbd>Esc</kbd> clear</span>
   </footer>
 </div>
 
+<!-- entry editor -->
 <dialog id="editor">
   <form class="dlg" id="edForm" method="dialog" autocomplete="off">
     <h2 id="edTitle">New entry</h2>
-    <label class="lbl">Name — use / for groups, e.g. globex/api-server
+    <label class="lbl">Name — use / for groups &amp; subgroups, e.g. acme/prod/db
       <input id="edPath" required spellcheck="false">
     </label>
     <div id="fields"></div>
@@ -143,9 +193,76 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
       <button type="button" id="edDelete" class="danger">Delete</button>
       <span class="grow"></span>
       <button type="button" id="edCancel">Cancel</button>
-      <button type="submit" class="primary">Save</button>
+      <button type="submit" class="primary" id="edSave">Save</button>
     </div>
   </form>
+</dialog>
+
+<!-- right-click context menu -->
+<div id="ctx">
+  <button id="ctxRename">✏ Rename</button>
+  <button id="ctxNew">+ New entry here</button>
+  <button id="ctxCopy">⎘ Copy path</button>
+  <button id="ctxDupe">❐ Duplicate</button>
+  <div class="ctx-sep"></div>
+  <button id="ctxDelete" class="ctx-danger">⌫ Delete group</button>
+</div>
+
+<!-- help dialog -->
+<dialog id="helpDlg">
+  <div class="dlg" style="padding-bottom:4px"><h2>Vault — Quick Reference</h2></div>
+  <div class="help-scroll">
+    <div class="hsec">
+      <h3>Keyboard shortcuts</h3>
+      <div class="hrow"><kbd>/</kbd><span class="desc">Focus search</span></div>
+      <div class="hrow"><kbd>n</kbd><span class="desc">New entry</span></div>
+      <div class="hrow"><kbd>↑</kbd> <kbd>↓</kbd><span class="desc">Navigate results</span></div>
+      <div class="hrow"><kbd>Enter</kbd><span class="desc">Copy selected field (while searching)</span></div>
+      <div class="hrow"><kbd>Esc</kbd><span class="desc">Clear search / close dialog</span></div>
+    </div>
+    <div class="hsec">
+      <h3>Groups &amp; paths</h3>
+      <p class="hint-box">Use <code>/</code> in the entry name to organise into groups and subgroups:</p>
+      <table class="htable" style="margin-top:8px">
+        <tr><td>gmail</td><td>Ungrouped entry</td></tr>
+        <tr><td>google/gmail</td><td>"gmail" inside group "google"</td></tr>
+        <tr><td>acme/prod/db</td><td>"db" inside subgroup "prod" of "acme"</td></tr>
+      </table>
+      <p class="hint-box">Right-click any group in the sidebar to <b>Rename</b>, <b>Duplicate</b> or <b>Delete</b> it. Click the group name to expand subgroups.</p>
+    </div>
+    <div class="hsec">
+      <h3>Common field names</h3>
+      <table class="htable">
+        <tr><td>url</td><td>Website or API endpoint URL</td></tr>
+        <tr><td>username / user / email</td><td>Login identity</td></tr>
+        <tr><td>password / pass / pwd</td><td>Password <span class="stag">secret</span></td></tr>
+        <tr><td>token / api_key / api-key</td><td>API key or bearer token <span class="stag">secret</span></td></tr>
+        <tr><td>secret / private</td><td>Any secret value <span class="stag">secret</span></td></tr>
+        <tr><td>host</td><td>Hostname or IP address</td></tr>
+        <tr><td>port</td><td>Port number</td></tr>
+        <tr><td>db / database</td><td>Database name or connection string</td></tr>
+        <tr><td>ssh</td><td>SSH command, e.g. <code>ssh user@10.0.0.1</code></td></tr>
+        <tr><td>note / notes</td><td>Freeform notes or runbook steps</td></tr>
+        <tr><td>cmd / command</td><td>Build command or CLI invocation</td></tr>
+      </table>
+      <p class="hint-box">Fields whose name matches <code>pass</code>, <code>pwd</code>, <code>secret</code>, <code>token</code>, <code>api_key</code> or <code>private</code> are automatically marked as <b>secret</b> (hidden until revealed).</p>
+    </div>
+    <div class="hsec">
+      <h3>CLI quick reference</h3>
+      <table class="htable">
+        <tr><td>vault add</td><td>Add a new entry interactively</td></tr>
+        <tr><td>vault find &lt;term&gt;</td><td>Search entries</td></tr>
+        <tr><td>vault get &lt;path&gt; &lt;field&gt;</td><td>Print a field value</td></tr>
+        <tr><td>vault copy &lt;path&gt; &lt;field&gt;</td><td>Copy a field to clipboard</td></tr>
+        <tr><td>vault edit &lt;path&gt;</td><td>Edit an entry in your $EDITOR</td></tr>
+        <tr><td>vault sync</td><td>Sync with remote git repo</td></tr>
+        <tr><td>vault import &lt;file&gt;</td><td>Import from a plain-text file</td></tr>
+        <tr><td>vault update</td><td>Update vault to the latest release</td></tr>
+        <tr><td>vault gui</td><td>Open this GUI in your browser</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="dlg" style="padding-top:8px"><div class="bar"><button id="helpClose">Close</button></div></div>
 </dialog>
 
 <div id="toast"></div>
@@ -165,6 +282,8 @@ const el = (tag, props = {}, ...kids) => {
   return n;
 };
 
+const UNGROUPED = '\u0001'; // sentinel for entries with no group prefix
+
 const token = (() => {
   const t = location.hash.slice(1);
   if (t) { sessionStorage.setItem('vt', t); history.replaceState(null, '', location.pathname); }
@@ -173,8 +292,9 @@ const token = (() => {
 
 async function api(path, method = 'GET', body) {
   const r = await fetch('/api/' + path, {
-    method, headers: { 'X-Vault-Token': token, 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body)
+    method,
+    headers: { 'X-Vault-Token': token, 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   let data = {};
   try { data = await r.json(); } catch {}
@@ -182,7 +302,7 @@ async function api(path, method = 'GET', body) {
   return data;
 }
 
-let entries = [], rev = -1, group = '', sel = 0, rows = [], revealed = new Set(), st = {};
+let entries = [], rev = -1, selGroup = '', navOpen = new Set(), sel = 0, rows = [], revealed = new Set(), st = {};
 const SECRET_RE = /pass|pwd|secret|token|api[-_]?key|private/i;
 const norm = s => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 
@@ -206,29 +326,98 @@ async function load() {
   render();
 }
 
-function groupsOf() {
+// Returns sorted [[groupKey, {count, sub: Map(sg→count)}], ...]
+// groupKey === UNGROUPED for entries with no '/' in path
+function buildTree() {
   const m = new Map();
   for (const e of entries) {
-    const g = e.path.includes('/') ? e.path.split('/')[0] : '(no group)';
-    m.set(g, (m.get(g) || 0) + 1);
+    const parts = e.path.split('/');
+    const g = parts.length > 1 ? parts[0] : UNGROUPED;
+    if (!m.has(g)) m.set(g, { count: 0, sub: new Map() });
+    m.get(g).count++;
+    if (parts.length >= 3) {
+      const sg = parts[1];
+      m.get(g).sub.set(sg, (m.get(g).sub.get(sg) || 0) + 1);
+    }
   }
-  return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  return [...m.entries()].sort((a, b) => {
+    if (a[0] === UNGROUPED) return 1;
+    if (b[0] === UNGROUPED) return -1;
+    return a[0].localeCompare(b[0]);
+  });
 }
 
 function renderGroups() {
-  const nav = $('#groups'); nav.replaceChildren();
-  const mk = (name, label, n) => el('button', { class: group === name ? 'on' : '', onclick: () => { group = name; sel = 0; render(); } },
-    el('span', { text: label }), el('span', { text: String(n) }));
-  nav.append(mk('', 'All', entries.length));
-  for (const [g, n] of groupsOf()) nav.append(mk(g, g, n));
+  const nav = $('#groups');
+  nav.replaceChildren();
+
+  // All
+  nav.append(el('button', {
+    class: 'nav-row' + (!selGroup ? ' on' : ''),
+    onclick: () => { selGroup = ''; sel = 0; render(); },
+  }, el('span', { class: 'chev' }), el('span', { class: 'lbl', text: 'All' }), el('span', { class: 'cnt', text: String(entries.length) })));
+
+  for (const [g, node] of buildTree()) {
+    const label = g === UNGROUPED ? '(ungrouped)' : g;
+    const hasSubs = node.sub.size > 0;
+    const isOpen = hasSubs && navOpen.has(g);
+    const isOn = selGroup === g;
+
+    const row = el('button', {
+      class: 'nav-row' + (isOn ? ' on' : '') + (isOpen ? ' xpnd' : ''),
+    });
+    row.append(
+      el('span', { class: 'chev', text: hasSubs ? '▶' : '' }),
+      el('span', { class: 'lbl', text: label }),
+      el('span', { class: 'cnt', text: String(node.count) }),
+    );
+    row.onclick = () => {
+      if (selGroup === g && hasSubs) {
+        navOpen.has(g) ? navOpen.delete(g) : navOpen.add(g);
+      } else {
+        selGroup = g;
+        if (hasSubs) navOpen.add(g);
+      }
+      sel = 0; render();
+    };
+    if (g !== UNGROUPED) {
+      row.addEventListener('contextmenu', ev => { ev.preventDefault(); showCtxMenu(g, ev.clientX, ev.clientY); });
+    }
+
+    const wrap = el('div', { class: 'nav-group' });
+    wrap.append(row);
+
+    if (hasSubs) {
+      const sub = el('div', { class: 'nav-sub' + (isOpen ? ' open' : '') });
+      for (const [sg, cnt] of [...node.sub.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+        const fp = g + '/' + sg;
+        const sr = el('button', { class: 'nav-row' + (selGroup === fp ? ' on' : '') });
+        sr.append(
+          el('span', { class: 'chev' }),
+          el('span', { class: 'lbl', text: sg }),
+          el('span', { class: 'cnt', text: String(cnt) }),
+        );
+        sr.onclick = () => { selGroup = fp; sel = 0; render(); };
+        sr.addEventListener('contextmenu', ev => { ev.preventDefault(); showCtxMenu(fp, ev.clientX, ev.clientY); });
+        sub.append(sr);
+      }
+      wrap.append(sub);
+    }
+    nav.append(wrap);
+  }
 }
 
 function matches() {
   const toks = $('#q').value.split(/\s+/).map(norm).filter(Boolean);
   const out = [];
   for (const e of entries) {
-    const g = e.path.includes('/') ? e.path.split('/')[0] : '(no group)';
-    if (group && g !== group) continue;
+    if (selGroup) {
+      if (selGroup === UNGROUPED) {
+        if (e.path.includes('/')) continue;
+      } else {
+        if (e.path !== selGroup && !e.path.startsWith(selGroup + '/')) continue;
+      }
+    }
     if (!toks.length || toks.every(t => norm(e.path).includes(t))) { out.push({ e, fields: e.fields.map((_, i) => i) }); continue; }
     const fi = [];
     e.fields.forEach((f, i) => {
@@ -259,7 +448,7 @@ function render() {
   if (!entries.length) {
     list.append(el('div', { class: 'empty' },
       el('p', { text: 'Your vault is empty.' }),
-      el('p', {}, 'Click ', el('b', { text: '+ New' }), ' or import from the terminal: ', el('code', { text: 'vault import notes.txt' }))));
+      el('p', {}, 'Press ', el('kbd', { text: 'n' }), ' or click + New, or run ', el('code', { text: 'vault import notes.txt' }))));
     return;
   }
   if (!res.length) { list.append(el('div', { class: 'empty', text: 'Nothing matches.' })); return; }
@@ -272,7 +461,10 @@ function render() {
     for (const i of fields) {
       const f = e.fields[i]; const id = e.path + '\u0000' + f.k;
       const masked = f.s && !revealed.has(id);
-      const row = el('button', { class: 'row', title: 'Click to copy', onclick: ev => { if (!ev.target.closest('.acts')) copy(e, f); } },
+      const row = el('button', {
+        class: 'row', title: 'Click to copy',
+        onclick: ev => { if (!ev.target.closest('.acts')) copy(e, f); },
+      },
         el('span', { class: 'k', text: f.k }),
         el('span', { class: 'v' + (masked ? ' masked' : ''), text: masked ? '••••••••••' : f.v }),
         el('span', { class: 'acts' },
@@ -337,20 +529,25 @@ async function refreshStatus() {
 /* ---- editor ---- */
 let editing = null;
 function fieldRow(f = { k: '', v: '', s: false }) {
-  const key = el('input', { placeholder: 'field (url, password…)', spellcheck: 'false' }); key.value = f.k;
+  const key = el('input', { placeholder: 'field name (url, password…)', spellcheck: 'false' }); key.value = f.k;
   const val = el('textarea', { rows: String(Math.min(8, Math.max(1, f.v.split('\n').length))), placeholder: 'value', spellcheck: 'false' }); val.value = f.v;
   const sec = el('input', { type: 'checkbox' }); sec.checked = !!f.s;
   key.addEventListener('input', () => { if (SECRET_RE.test(key.value)) sec.checked = true; });
   val.addEventListener('input', () => { val.rows = Math.min(8, Math.max(1, val.value.split('\n').length)); });
-  const row = el('div', { class: 'frow' }, key, val, el('label', { class: 'sec' }, sec, 'secret'),
+  const row = el('div', { class: 'frow' }, key, val,
+    el('label', { class: 'sec' }, sec, 'secret'),
     el('button', { type: 'button', class: 'ghost', title: 'Remove field', onclick: () => row.remove() }, '✕'));
   row._get = () => ({ k: key.value.trim(), v: val.value, s: sec.checked });
   return row;
 }
-function openEditor(e) {
+
+function openEditor(e, prefix) {
   editing = e || null;
   $('#edTitle').textContent = e ? 'Edit entry' : 'New entry';
-  $('#edPath').value = e ? e.path : (group && group !== '(no group)' ? group + '/' : '');
+  if (prefix === undefined) {
+    prefix = (selGroup && selGroup !== UNGROUPED) ? selGroup + '/' : '';
+  }
+  $('#edPath').value = e ? e.path : prefix;
   const box = $('#fields'); box.replaceChildren();
   const fs = e ? e.fields : [{ k: 'url', v: '', s: false }, { k: 'username', v: '', s: false }, { k: 'password', v: '', s: true }];
   for (const f of fs) box.append(fieldRow(f));
@@ -358,6 +555,7 @@ function openEditor(e) {
   $('#editor').showModal();
   (e ? box.querySelector('textarea') : $('#edPath')).focus();
 }
+
 $('#addField').onclick = () => { const r = fieldRow(); $('#fields').append(r); r.querySelector('input').focus(); };
 $('#edCancel').onclick = () => $('#editor').close();
 $('#edDelete').onclick = async () => {
@@ -377,16 +575,109 @@ $('#edForm').addEventListener('submit', async ev => {
   chs.push({ path, fields });
   await save(chs, 'Saved');
 });
-async function save(chs, msg) {
-  try {
-    const r = await api('apply', 'POST', { changes: chs });
-    $('#editor').close();
-    toast(r.syncError ? `${msg} here, but sync failed` : msg, !!r.syncError);
-    await refreshStatus();
-  } catch (e) { toast(e.message, true); }
+
+function applyLocal(chs) {
+  for (const ch of chs) {
+    if (ch.delete) {
+      entries = entries.filter(e => e.path !== ch.path);
+      for (const k of [...revealed]) if (k.startsWith(ch.path + '\u0000')) revealed.delete(k);
+    } else {
+      const idx = entries.findIndex(e => e.path === ch.path);
+      const entry = { path: ch.path, fields: ch.fields || [], updated: Date.now() };
+      if (idx >= 0) entries[idx] = entry; else entries.push(entry);
+    }
+  }
+  // reset selection if current group is now empty
+  if (selGroup && selGroup !== UNGROUPED && !entries.some(e => e.path === selGroup || e.path.startsWith(selGroup + '/'))) selGroup = '';
+  if (selGroup === UNGROUPED && !entries.some(e => !e.path.includes('/'))) selGroup = '';
 }
 
-/* ---- top bar & keys ---- */
+async function save(chs, msg) {
+  const saveBtn = $('#edSave');
+  if (saveBtn) saveBtn.disabled = true;
+  try {
+    const r = await api('apply', 'POST', { changes: chs });
+    applyLocal(chs);
+    $('#editor').close();
+    toast(r.syncError ? `${msg} (sync failed)` : msg, !!r.syncError);
+    render();
+    refreshStatus(); // background — no await
+  } catch (e) {
+    toast(e.message, true);
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+  }
+}
+
+/* ---- context menu ---- */
+let ctxTarget = '';
+function showCtxMenu(group, x, y) {
+  ctxTarget = group;
+  const m = $('#ctx');
+  m.style.left = x + 'px'; m.style.top = y + 'px';
+  m.classList.add('show');
+  requestAnimationFrame(() => {
+    const r = m.getBoundingClientRect();
+    if (r.right > innerWidth) m.style.left = (x - r.width) + 'px';
+    if (r.bottom > innerHeight) m.style.top = (y - r.height) + 'px';
+  });
+}
+function hideCtxMenu() { $('#ctx').classList.remove('show'); }
+document.addEventListener('click', hideCtxMenu);
+document.addEventListener('contextmenu', ev => { if (!ev.target.closest('#ctx')) hideCtxMenu(); });
+
+$('#ctxRename').onclick = async () => {
+  const old = ctxTarget; hideCtxMenu();
+  const input = prompt(`Rename "${old}" to:`, old);
+  if (!input || input.trim() === old) return;
+  const neo = input.trim();
+  const affected = entries.filter(e => e.path === old || e.path.startsWith(old + '/'));
+  if (!affected.length) return;
+  const chs = [];
+  for (const e of affected) {
+    chs.push({ path: e.path, delete: true });
+    chs.push({ path: neo + e.path.slice(old.length), fields: e.fields });
+  }
+  if (selGroup === old || selGroup.startsWith(old + '/')) selGroup = neo + selGroup.slice(old.length);
+  if (navOpen.has(old)) { navOpen.delete(old); navOpen.add(neo); }
+  await save(chs, `Renamed to "${neo}"`);
+};
+
+$('#ctxNew').onclick = () => {
+  const g = ctxTarget; hideCtxMenu();
+  openEditor(null, g + '/');
+};
+
+$('#ctxCopy').onclick = () => {
+  hideCtxMenu();
+  navigator.clipboard.writeText(ctxTarget)
+    .then(() => toast(`Copied: ${ctxTarget}`))
+    .catch(() => toast('Clipboard unavailable', true));
+};
+
+$('#ctxDupe').onclick = async () => {
+  const old = ctxTarget; hideCtxMenu();
+  const input = prompt(`Duplicate "${old}" as:`, old + '-copy');
+  if (!input || input.trim() === old) return;
+  const neo = input.trim();
+  const affected = entries.filter(e => e.path === old || e.path.startsWith(old + '/'));
+  if (!affected.length) { toast('Nothing to duplicate', true); return; }
+  await save(affected.map(e => ({ path: neo + e.path.slice(old.length), fields: e.fields })), `Duplicated to "${neo}"`);
+};
+
+$('#ctxDelete').onclick = async () => {
+  const g = ctxTarget; hideCtxMenu();
+  const affected = entries.filter(e => e.path === g || e.path.startsWith(g + '/'));
+  if (!affected.length) { toast('Group is already empty'); return; }
+  if (!confirm(`Delete all ${affected.length} entr${affected.length === 1 ? 'y' : 'ies'} in "${g}"?`)) return;
+  await save(affected.map(e => ({ path: e.path, delete: true })), `Deleted "${g}"`);
+};
+
+/* ---- help ---- */
+$('#helpBtn').onclick = () => $('#helpDlg').showModal();
+$('#helpClose').onclick = () => $('#helpDlg').close();
+
+/* ---- top bar ---- */
 $('#q').addEventListener('input', () => { sel = 0; render(); });
 $('#newBtn').onclick = () => openEditor();
 $('#syncBtn').onclick = async () => {
@@ -395,7 +686,11 @@ $('#syncBtn').onclick = async () => {
   catch (e) { toast(e.status === 423 ? 'Locked' : 'Sync failed: ' + e.message, true); }
   $('#syncBtn').disabled = false; refreshStatus();
 };
-$('#lockBtn').onclick = async () => { await api('lock', 'POST').catch(() => {}); entries = []; revealed.clear(); showLock('Locked. Enter your master password'); };
+$('#lockBtn').onclick = async () => {
+  await api('lock', 'POST').catch(() => {});
+  entries = []; revealed.clear();
+  showLock('Locked. Enter your master password');
+};
 $('#lockForm').addEventListener('submit', async ev => {
   ev.preventDefault();
   $('#lockErr').textContent = ''; $('#unlockBtn').disabled = true;
@@ -405,7 +700,7 @@ $('#lockForm').addEventListener('submit', async ev => {
 });
 
 document.addEventListener('keydown', ev => {
-  if ($('#app').hidden || $('#editor').open) return;
+  if ($('#app').hidden || $('#editor').open || $('#helpDlg').open) return;
   const inSearch = document.activeElement === $('#q');
   if (ev.key === '/' && !inSearch) { ev.preventDefault(); $('#q').focus(); $('#q').select(); return; }
   if (ev.key === 'n' && !inSearch && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); openEditor(); return; }
