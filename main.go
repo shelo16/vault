@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	version    = "0.1.5"
+	version    = "0.1.6"
 	defaultCmd = "" // set to "gui" for the windowless Windows build (vaultw.exe)
 )
 
@@ -56,6 +56,7 @@ SYNC & SETUP
   vault passwd                   change the master password
   vault status                   where things are, sync state
   vault update                   update vault to the latest release
+  vault restart                  restart the background agent (picks up a new binary)
   vault completion <shell>       tab completion: bash, zsh, fish or powershell (see README)
 `
 
@@ -169,6 +170,8 @@ func run(args []string) error {
 		return cmdCompletion(a)
 	case "update":
 		return cmdUpdate()
+	case "restart":
+		return cmdRestart()
 	}
 
 	b, err := openBackend()

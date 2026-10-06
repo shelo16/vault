@@ -251,6 +251,43 @@ func cmdLock() error {
 	return nil
 }
 
+// killAgent terminates the running agent process (if any) and removes agent.json.
+// Returns true if a process was found and signalled.
+func killAgent() bool {
+	b, err := os.ReadFile(agentFile())
+	if err != nil {
+		return false
+	}
+	var info agentInfo
+	if json.Unmarshal(b, &info) != nil || info.PID == 0 {
+		return false
+	}
+	proc, err := os.FindProcess(info.PID)
+	if err != nil {
+		return false
+	}
+	killed := proc.Kill() == nil
+	os.Remove(agentFile())
+	return killed
+}
+
+func cmdRestart() error {
+	was := findAgent() != nil
+	killAgent()
+	if was {
+		time.Sleep(300 * time.Millisecond)
+	}
+	if _, err := startAgent(30); err != nil {
+		return err
+	}
+	if was {
+		status("agent restarted — vault is locked, run `vault unlock` or `vault gui`")
+	} else {
+		status("agent started — run `vault unlock` or `vault gui`")
+	}
+	return nil
+}
+
 func cmdGui(o options) error {
 	a, err := ensureAgent(o.timeout)
 	if err != nil {

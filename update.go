@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 )
 
 const (
@@ -75,6 +76,9 @@ func cmdUpdate() error {
 		return fmt.Errorf("could not locate own path: %v", err)
 	}
 
+	// Note whether the agent is running before we replace the binary.
+	wasRunning := findAgent() != nil
+
 	resp, err := http.Get(updateDLBase + name)
 	if err != nil {
 		return fmt.Errorf("download failed: %v", err)
@@ -111,5 +115,16 @@ func cmdUpdate() error {
 	}
 
 	status("updated to vault %s", latest)
+
+	if wasRunning {
+		status("restarting agent ...")
+		killAgent()
+		time.Sleep(300 * time.Millisecond)
+		if _, err := startAgent(30); err != nil {
+			status("agent restart failed: %v — run `vault gui` to start it", err)
+		} else {
+			status("agent restarted — run `vault gui` to unlock")
+		}
+	}
 	return nil
 }
