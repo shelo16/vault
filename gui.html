@@ -119,15 +119,23 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
 .pb-wrap{display:grid;gap:6px}
 .pb-label{font-size:12px;color:var(--muted)}
 .pb-segs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-height:32px}
-.pb-segs:empty::before{content:'(no folder — entry will be ungrouped)';color:var(--faint);font-size:12px}
-.seg-pill{display:flex;align-items:center;background:var(--hl);border:1px solid var(--line);border-radius:6px;padding:0 0 0 8px}
+.pb-segs:empty::before{content:'(root level — no folder)';color:var(--faint);font-size:12px}
+.seg-pill{position:relative;display:flex;align-items:center;background:var(--hl);border:1px solid var(--line);border-radius:6px;padding:0 0 0 8px}
 .seg-pill input{background:transparent;border:0;padding:4px 2px;width:72px;font-size:13px;
   outline:none;border-radius:0;box-shadow:none;min-width:0}
-.seg-pill input:focus{width:100px}
+.seg-pill input:focus{width:110px}
 .seg-pill .seg-rm{border:0;background:transparent;color:var(--faint);padding:3px 7px;font-size:13px;border-radius:0 5px 5px 0}
 .seg-pill .seg-rm:hover{color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent)}
-.seg-sep{color:var(--faint);font-size:13px;padding:0 2px;select:none}
+.seg-sep{color:var(--faint);font-size:13px;padding:0 2px}
 .pb-add{font-size:12px;padding:3px 8px;align-self:flex-start}
+.seg-dd{position:absolute;top:calc(100% + 4px);left:0;z-index:200;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:4px;min-width:140px;max-height:220px;overflow-y:auto;
+  box-shadow:0 4px 16px rgb(0 0 0/.45)}
+.seg-dd-item{display:block;width:100%;text-align:left;border:0;background:transparent;
+  padding:5px 10px;border-radius:5px;font-size:13px;color:var(--ink);cursor:pointer}
+.seg-dd-item:hover,.seg-dd-item:focus{background:var(--hl);outline:none}
+.seg-dd-hint{font-size:12px;color:var(--faint);padding:5px 10px;font-style:italic}
 
 /* context menu */
 #ctx{position:fixed;z-index:9999;background:var(--panel);border:1px solid var(--line);border-radius:9px;
@@ -214,8 +222,8 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
         <button type="button" id="pbAdd" class="ghost pb-add">+ Folder</button>
       </div>
     </div>
-    <label class="lbl">Name
-      <input id="edName" required spellcheck="false" placeholder="entry name">
+    <label class="lbl">Name <span style="color:var(--faint);font-weight:400">(optional if folder is set)</span>
+      <input id="edName" spellcheck="false" placeholder="entry name">
     </label>
     <div id="fields"></div>
     <div><button type="button" id="addField" class="ghost">+ Add field</button></div>
@@ -611,28 +619,86 @@ async function refreshStatus() {
 /* ---- path builder ---- */
 let edPathSegs = [];
 
+// Returns existing folder names at the given depth (for autocomplete)
+function getFolderSuggestions(segs) {
+  const prefix = segs.filter(Boolean).join('/');
+  const seen = new Set();
+  for (const e of entries) {
+    const parts = e.path.split('/');
+    if (parts.length < segs.length + 2) continue; // must have at least one level below
+    if (segs.length > 0 && parts.slice(0, segs.length).join('/') !== prefix) continue;
+    seen.add(parts[segs.length]);
+  }
+  return [...seen].sort((a, b) => a.localeCompare(b));
+}
+
+function makeSegPill(i) {
+  const inp = el('input', { placeholder: 'folder', spellcheck: 'false' });
+  inp.value = edPathSegs[i] || '';
+
+  const dd = el('div', { class: 'seg-dd' });
+  dd.hidden = true;
+
+  function populateDD() {
+    const suggs = getFolderSuggestions(edPathSegs.slice(0, i));
+    const val = inp.value.trim().toLowerCase();
+    const filtered = val ? suggs.filter(s => s.toLowerCase().includes(val)) : suggs;
+    dd.replaceChildren();
+    for (const s of filtered.slice(0, 12)) {
+      const btn = el('button', { type: 'button', class: 'seg-dd-item', text: s });
+      btn.onmousedown = ev => {
+        ev.preventDefault();
+        edPathSegs[i] = s;
+        renderPathBuilder();
+        // focus next input or name field
+        const inputs = document.querySelectorAll('#pbSegs input');
+        (inputs[i + 1] || $('#edName')).focus();
+      };
+      dd.append(btn);
+    }
+    if (!filtered.length && val) {
+      dd.append(el('div', { class: 'seg-dd-hint', text: `New folder: "${inp.value.trim()}"` }));
+      dd.hidden = false;
+    } else {
+      dd.hidden = !filtered.length;
+    }
+  }
+
+  inp.addEventListener('focus', populateDD);
+  inp.addEventListener('input', () => { edPathSegs[i] = inp.value; populateDD(); });
+  inp.addEventListener('blur', () => setTimeout(() => { dd.hidden = true; }, 160));
+  inp.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { ev.preventDefault(); dd.hidden = true; (document.querySelectorAll('#pbSegs input')[i + 1] || $('#edName')).focus(); }
+    if (ev.key === 'Escape') dd.hidden = true;
+    if (ev.key === 'ArrowDown' && !dd.hidden) { ev.preventDefault(); dd.querySelector('.seg-dd-item')?.focus(); }
+    if (ev.key === 'Backspace' && inp.value === '') {
+      ev.preventDefault();
+      edPathSegs.splice(i, 1);
+      renderPathBuilder();
+      const inputs = document.querySelectorAll('#pbSegs input');
+      (inputs[Math.max(0, i - 1)] || $('#edName')).focus();
+    }
+  });
+  // keyboard nav inside dropdown
+  dd.addEventListener('keydown', ev => {
+    const items = [...dd.querySelectorAll('.seg-dd-item')];
+    const idx = items.indexOf(document.activeElement);
+    if (ev.key === 'ArrowDown') { ev.preventDefault(); items[idx + 1]?.focus(); }
+    if (ev.key === 'ArrowUp') { ev.preventDefault(); idx > 0 ? items[idx - 1].focus() : inp.focus(); }
+    if (ev.key === 'Escape') { dd.hidden = true; inp.focus(); }
+  });
+
+  const pill = el('div', { class: 'seg-pill' }, inp, dd,
+    el('button', { type: 'button', class: 'seg-rm', onclick: () => { edPathSegs.splice(i, 1); renderPathBuilder(); } }, '×'));
+  return pill;
+}
+
 function renderPathBuilder() {
   const container = $('#pbSegs');
   container.replaceChildren();
   edPathSegs.forEach((seg, i) => {
     if (i > 0) container.append(el('span', { class: 'seg-sep', text: '/' }));
-    const inp = el('input', { placeholder: 'folder name', spellcheck: 'false' });
-    inp.value = seg;
-    inp.addEventListener('input', () => { edPathSegs[i] = inp.value; });
-    inp.addEventListener('keydown', ev => {
-      if (ev.key === 'Enter') { ev.preventDefault(); $('#edName').focus(); }
-      if (ev.key === 'Backspace' && inp.value === '') {
-        ev.preventDefault();
-        edPathSegs.splice(i, 1);
-        renderPathBuilder();
-        const inputs = container.querySelectorAll('input');
-        (inputs[i - 1] || $('#edName')).focus();
-      }
-    });
-    const pill = el('div', { class: 'seg-pill' }, inp,
-      el('button', { type: 'button', class: 'seg-rm', title: 'Remove folder level',
-        onclick: () => { edPathSegs.splice(i, 1); renderPathBuilder(); } }, '×'));
-    container.append(pill);
+    container.append(makeSegPill(i));
   });
 }
 
@@ -690,9 +756,10 @@ $('#edDelete').onclick = async () => {
 $('#edForm').addEventListener('submit', async ev => {
   ev.preventDefault();
   const nameParts = $('#edName').value.split('/').map(s => s.trim()).filter(Boolean);
-  if (!nameParts.length) return toast('Give it a name', true);
   const segs = edPathSegs.map(s => s.trim()).filter(Boolean);
-  const path = [...segs, ...nameParts].join('/');
+  const allParts = [...segs, ...nameParts];
+  if (!allParts.length) return toast('Add at least a folder or a name', true);
+  const path = allParts.join('/');
   const fields = [...$('#fields').children].map(r => r._get()).filter(f => f.k || f.v);
   if (fields.some(f => !f.k)) return toast('Every field needs a name', true);
   const clash = entries.find(x => x.path.toLowerCase() === path.toLowerCase());
