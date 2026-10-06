@@ -48,21 +48,20 @@ header .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%
 /* nav tree */
 nav{border-right:1px solid var(--line);padding:8px 6px;overflow-y:auto;overflow-x:hidden}
 .nav-row{display:flex;align-items:center;width:100%;border:0;background:transparent;text-align:left;
-  padding:5px 8px;border-radius:6px;color:var(--muted);cursor:pointer;gap:0;user-select:none}
+  padding:5px 8px;border-radius:6px;color:var(--muted);cursor:pointer;user-select:none}
 .nav-row:hover{background:var(--hl);color:var(--ink)}
 .nav-row.on{background:var(--hl);color:var(--ink);font-weight:600}
 .nav-row .chev{width:14px;flex-shrink:0;font-size:9px;color:var(--faint);text-align:center;
-  transition:transform .17s;line-height:1;margin-right:2px}
+  transition:transform .17s;line-height:1;margin-right:3px}
 .nav-row.xpnd .chev{transform:rotate(90deg)}
 .nav-row .lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:6px}
 .nav-row .cnt{color:var(--faint);font-variant-numeric:tabular-nums;font-size:12px;flex-shrink:0}
-.nav-sub{overflow:hidden;max-height:0;transition:max-height .22s ease}
-.nav-sub.open{max-height:1200px}
-.nav-sub .nav-row{padding-left:22px}
+.nav-sub{overflow:hidden;max-height:0;transition:max-height .2s ease}
+.nav-sub.open{max-height:4000px}
 
 /* main list */
-main{overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
-@keyframes fadein{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+main{overflow:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+@keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-shrink:0;animation:fadein .13s ease}
 .card-h{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--line)}
 .card-h .name{flex:1;font-weight:600;overflow-wrap:anywhere}
@@ -79,6 +78,17 @@ main{overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
 .row .acts{display:flex;gap:2px;opacity:.55}
 .row:hover .acts,.row.sel .acts{opacity:1}
 .row .hint{font-size:12px;color:var(--faint);padding:2px 6px}
+
+/* main grid group header */
+.mg-hdr{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 12px;
+  border-radius:8px;cursor:pointer;user-select:none;color:var(--muted);flex-shrink:0}
+.mg-hdr:hover{background:var(--hl);color:var(--ink)}
+.mg-chev{font-size:9px;width:14px;text-align:center;transition:transform .17s;flex-shrink:0}
+.mg-hdr.open .mg-chev{transform:rotate(90deg)}
+.mg-name{font-weight:600;color:var(--ink);flex:1}
+.mg-cnt{font-size:12px;color:var(--faint)}
+.mg-body{display:flex;flex-direction:column;gap:8px;padding-left:16px;padding-bottom:4px}
+
 .empty{color:var(--muted);text-align:center;padding:48px 16px}
 .empty code{font-family:var(--mono);background:var(--panel);border:1px solid var(--line);padding:1px 6px;border-radius:5px}
 
@@ -103,7 +113,21 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
 .frow .sec{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px;padding-top:9px;white-space:nowrap}
 .dlg .bar{display:flex;gap:8px;justify-content:flex-end}
 .dlg .bar .grow{flex:1}
-#fields{display:grid;gap:6px;max-height:50vh;overflow:auto;padding:2px}
+#fields{display:grid;gap:6px;max-height:45vh;overflow:auto;padding:2px}
+
+/* path builder in editor */
+.pb-wrap{display:grid;gap:6px}
+.pb-label{font-size:12px;color:var(--muted)}
+.pb-segs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-height:32px}
+.pb-segs:empty::before{content:'(no folder — entry will be ungrouped)';color:var(--faint);font-size:12px}
+.seg-pill{display:flex;align-items:center;background:var(--hl);border:1px solid var(--line);border-radius:6px;padding:0 0 0 8px}
+.seg-pill input{background:transparent;border:0;padding:4px 2px;width:72px;font-size:13px;
+  outline:none;border-radius:0;box-shadow:none;min-width:0}
+.seg-pill input:focus{width:100px}
+.seg-pill .seg-rm{border:0;background:transparent;color:var(--faint);padding:3px 7px;font-size:13px;border-radius:0 5px 5px 0}
+.seg-pill .seg-rm:hover{color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent)}
+.seg-sep{color:var(--faint);font-size:13px;padding:0 2px;select:none}
+.pb-add{font-size:12px;padding:3px 8px;align-self:flex-start}
 
 /* context menu */
 #ctx{position:fixed;z-index:9999;background:var(--panel);border:1px solid var(--line);border-radius:9px;
@@ -135,8 +159,7 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
 @media(max-width:700px){
   .layout{grid-template-columns:1fr}
   nav{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;border-right:0;border-bottom:1px solid var(--line);padding:8px}
-  .nav-group{display:contents}
-  .nav-sub{display:none}
+  nav .nav-sub{display:none}
   .nav-row{width:auto;white-space:nowrap}
   .row{grid-template-columns:1fr auto}
   .row .k{grid-column:1/-1}
@@ -184,8 +207,15 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
 <dialog id="editor">
   <form class="dlg" id="edForm" method="dialog" autocomplete="off">
     <h2 id="edTitle">New entry</h2>
-    <label class="lbl">Name — use / for groups &amp; subgroups, e.g. acme/prod/db
-      <input id="edPath" required spellcheck="false">
+    <div class="pb-wrap">
+      <div class="pb-label">Folder (optional — click + to add levels)</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <div id="pbSegs" class="pb-segs"></div>
+        <button type="button" id="pbAdd" class="ghost pb-add">+ Folder</button>
+      </div>
+    </div>
+    <label class="lbl">Name
+      <input id="edName" required spellcheck="false" placeholder="entry name">
     </label>
     <div id="fields"></div>
     <div><button type="button" id="addField" class="ghost">+ Add field</button></div>
@@ -221,14 +251,15 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
       <div class="hrow"><kbd>Esc</kbd><span class="desc">Clear search / close dialog</span></div>
     </div>
     <div class="hsec">
-      <h3>Groups &amp; paths</h3>
-      <p class="hint-box">Use <code>/</code> in the entry name to organise into groups and subgroups:</p>
+      <h3>Folders &amp; nesting</h3>
+      <p class="hint-box">Use the <b>+ Folder</b> button in the New Entry popup to create nested folders. Any depth is supported:</p>
       <table class="htable" style="margin-top:8px">
-        <tr><td>gmail</td><td>Ungrouped entry</td></tr>
-        <tr><td>google/gmail</td><td>"gmail" inside group "google"</td></tr>
-        <tr><td>acme/prod/db</td><td>"db" inside subgroup "prod" of "acme"</td></tr>
+        <tr><td>gmail</td><td>Ungrouped entry (no folder)</td></tr>
+        <tr><td>google / gmail</td><td>"gmail" inside folder "google"</td></tr>
+        <tr><td>acme / prod / db</td><td>"db" inside "prod" inside "acme"</td></tr>
+        <tr><td>acme / prod / web</td><td>sibling of db under acme/prod</td></tr>
       </table>
-      <p class="hint-box">Right-click any group in the sidebar to <b>Rename</b>, <b>Duplicate</b> or <b>Delete</b> it. Click the group name to expand subgroups.</p>
+      <p class="hint-box">Right-click any folder in the sidebar to <b>Rename</b>, <b>Duplicate</b> or <b>Delete</b> it.<br>Click a folder name to filter the main view to that folder. Click its <b>▶</b> arrow to expand subfolders.</p>
     </div>
     <div class="hsec">
       <h3>Common field names</h3>
@@ -245,7 +276,7 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
         <tr><td>note / notes</td><td>Freeform notes or runbook steps</td></tr>
         <tr><td>cmd / command</td><td>Build command or CLI invocation</td></tr>
       </table>
-      <p class="hint-box">Fields whose name matches <code>pass</code>, <code>pwd</code>, <code>secret</code>, <code>token</code>, <code>api_key</code> or <code>private</code> are automatically marked as <b>secret</b> (hidden until revealed).</p>
+      <p class="hint-box">Fields matching <code>pass</code>, <code>pwd</code>, <code>secret</code>, <code>token</code>, <code>api_key</code> or <code>private</code> are automatically marked <b>secret</b>.</p>
     </div>
     <div class="hsec">
       <h3>CLI quick reference</h3>
@@ -254,10 +285,9 @@ dialog::backdrop{background:rgb(0 0 0/.35)}
         <tr><td>vault find &lt;term&gt;</td><td>Search entries</td></tr>
         <tr><td>vault get &lt;path&gt; &lt;field&gt;</td><td>Print a field value</td></tr>
         <tr><td>vault copy &lt;path&gt; &lt;field&gt;</td><td>Copy a field to clipboard</td></tr>
-        <tr><td>vault edit &lt;path&gt;</td><td>Edit an entry in your $EDITOR</td></tr>
         <tr><td>vault sync</td><td>Sync with remote git repo</td></tr>
-        <tr><td>vault import &lt;file&gt;</td><td>Import from a plain-text file</td></tr>
         <tr><td>vault update</td><td>Update vault to the latest release</td></tr>
+        <tr><td>vault restart</td><td>Restart the background agent</td></tr>
         <tr><td>vault gui</td><td>Open this GUI in your browser</td></tr>
       </table>
     </div>
@@ -282,8 +312,6 @@ const el = (tag, props = {}, ...kids) => {
   return n;
 };
 
-const UNGROUPED = '\u0001'; // sentinel for entries with no group prefix
-
 const token = (() => {
   const t = location.hash.slice(1);
   if (t) { sessionStorage.setItem('vt', t); history.replaceState(null, '', location.pathname); }
@@ -302,7 +330,43 @@ async function api(path, method = 'GET', body) {
   return data;
 }
 
-let entries = [], rev = -1, selGroup = '', navOpen = new Set(), sel = 0, rows = [], revealed = new Set(), st = {};
+// Tree node: { entries: [{e, fields}], children: Map<string, node>, count: number }
+function buildTree(matches) {
+  const root = { entries: [], children: new Map(), count: matches.length };
+  for (const m of matches) {
+    const parts = m.e.path.split('/');
+    let node = root;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!node.children.has(parts[i])) node.children.set(parts[i], { entries: [], children: new Map(), count: 0 });
+      node = node.children.get(parts[i]);
+      node.count++;
+    }
+    node.entries.push(m);
+  }
+  // Fix counts: root.count is already set; child counts only include entries in their subtree
+  // Re-count properly by summing children
+  function recount(node) {
+    let total = node.entries.length;
+    for (const child of node.children.values()) total += recount(child);
+    node.count = total;
+    return total;
+  }
+  recount(root);
+  return root;
+}
+
+function getNodeAt(root, path) {
+  if (!path) return root;
+  let node = root;
+  for (const seg of path.split('/')) {
+    if (!node.children.has(seg)) return null;
+    node = node.children.get(seg);
+  }
+  return node;
+}
+
+let entries = [], rev = -1, selGroup = '', navOpen = new Set(), mainCollapsed = new Set();
+let sel = 0, rows = [], revealed = new Set(), st = {};
 const SECRET_RE = /pass|pwd|secret|token|api[-_]?key|private/i;
 const norm = s => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 
@@ -312,7 +376,6 @@ function toast(msg, bad = false) {
   t.textContent = msg; t.className = 'on' + (bad ? ' bad' : '');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = bad ? 'bad' : '', bad ? 4000 : 1800);
 }
-
 function showLock(msg) {
   $('#app').hidden = true; $('#lock').hidden = false;
   if (msg !== undefined) $('#lockSub').textContent = msg;
@@ -326,99 +389,75 @@ async function load() {
   render();
 }
 
-// Returns sorted [[groupKey, {count, sub: Map(sg→count)}], ...]
-// groupKey === UNGROUPED for entries with no '/' in path
-function buildTree() {
-  const m = new Map();
-  for (const e of entries) {
-    const parts = e.path.split('/');
-    const g = parts.length > 1 ? parts[0] : UNGROUPED;
-    if (!m.has(g)) m.set(g, { count: 0, sub: new Map() });
-    m.get(g).count++;
-    if (parts.length >= 3) {
-      const sg = parts[1];
-      m.get(g).sub.set(sg, (m.get(g).sub.get(sg) || 0) + 1);
+// Recursive nav render — unlimited depth
+function renderNavNode(node, path, depth, container) {
+  const sorted = [...node.children.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  for (const [name, child] of sorted) {
+    const fp = path ? path + '/' + name : name;
+    const hasSubs = child.children.size > 0;
+    const isOn = selGroup === fp;
+    const autoOpen = selGroup === fp || selGroup.startsWith(fp + '/');
+    const isOpen = hasSubs && (autoOpen || navOpen.has(fp));
+
+    const row = el('button', { class: 'nav-row' + (isOn ? ' on' : '') + (isOpen ? ' xpnd' : '') });
+    row.style.paddingLeft = (8 + depth * 14) + 'px';
+    row.append(
+      el('span', { class: 'chev', text: hasSubs ? '▶' : '' }),
+      el('span', { class: 'lbl', text: name }),
+      el('span', { class: 'cnt', text: String(child.count) }),
+    );
+    row.onclick = () => {
+      if (selGroup === fp) {
+        if (hasSubs) navOpen.has(fp) ? navOpen.delete(fp) : navOpen.add(fp);
+      } else {
+        selGroup = fp;
+        if (hasSubs) navOpen.add(fp);
+      }
+      sel = 0; render();
+    };
+    // stopPropagation prevents the document contextmenu listener from immediately closing the menu
+    row.addEventListener('contextmenu', ev => { ev.preventDefault(); ev.stopPropagation(); showCtxMenu(fp, ev.clientX, ev.clientY); });
+    container.append(row);
+
+    if (hasSubs) {
+      const sub = el('div', { class: 'nav-sub' + (isOpen ? ' open' : '') });
+      renderNavNode(child, fp, depth + 1, sub);
+      container.append(sub);
     }
   }
-  return [...m.entries()].sort((a, b) => {
-    if (a[0] === UNGROUPED) return 1;
-    if (b[0] === UNGROUPED) return -1;
-    return a[0].localeCompare(b[0]);
-  });
 }
 
 function renderGroups() {
   const nav = $('#groups');
   nav.replaceChildren();
+  const tree = buildTree(entries.map(e => ({ e, fields: e.fields.map((_, i) => i) })));
 
-  // All
   nav.append(el('button', {
     class: 'nav-row' + (!selGroup ? ' on' : ''),
     onclick: () => { selGroup = ''; sel = 0; render(); },
   }, el('span', { class: 'chev' }), el('span', { class: 'lbl', text: 'All' }), el('span', { class: 'cnt', text: String(entries.length) })));
 
-  for (const [g, node] of buildTree()) {
-    const label = g === UNGROUPED ? '(ungrouped)' : g;
-    const hasSubs = node.sub.size > 0;
-    const isOpen = hasSubs && navOpen.has(g);
-    const isOn = selGroup === g;
+  renderNavNode(tree, '', 0, nav);
 
-    const row = el('button', {
-      class: 'nav-row' + (isOn ? ' on' : '') + (isOpen ? ' xpnd' : ''),
-    });
-    row.append(
-      el('span', { class: 'chev', text: hasSubs ? '▶' : '' }),
-      el('span', { class: 'lbl', text: label }),
-      el('span', { class: 'cnt', text: String(node.count) }),
-    );
-    row.onclick = () => {
-      if (selGroup === g && hasSubs) {
-        navOpen.has(g) ? navOpen.delete(g) : navOpen.add(g);
-      } else {
-        selGroup = g;
-        if (hasSubs) navOpen.add(g);
-      }
-      sel = 0; render();
-    };
-    if (g !== UNGROUPED) {
-      row.addEventListener('contextmenu', ev => { ev.preventDefault(); showCtxMenu(g, ev.clientX, ev.clientY); });
-    }
-
-    const wrap = el('div', { class: 'nav-group' });
-    wrap.append(row);
-
-    if (hasSubs) {
-      const sub = el('div', { class: 'nav-sub' + (isOpen ? ' open' : '') });
-      for (const [sg, cnt] of [...node.sub.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-        const fp = g + '/' + sg;
-        const sr = el('button', { class: 'nav-row' + (selGroup === fp ? ' on' : '') });
-        sr.append(
-          el('span', { class: 'chev' }),
-          el('span', { class: 'lbl', text: sg }),
-          el('span', { class: 'cnt', text: String(cnt) }),
-        );
-        sr.onclick = () => { selGroup = fp; sel = 0; render(); };
-        sr.addEventListener('contextmenu', ev => { ev.preventDefault(); showCtxMenu(fp, ev.clientX, ev.clientY); });
-        sub.append(sr);
-      }
-      wrap.append(sub);
-    }
-    nav.append(wrap);
+  // Ungrouped entries (no folder) as last nav item
+  if (tree.entries.length > 0) {
+    nav.append(el('button', {
+      class: 'nav-row' + (selGroup === '\u0001' ? ' on' : ''),
+      onclick: () => { selGroup = '\u0001'; sel = 0; render(); },
+    }, el('span', { class: 'chev' }), el('span', { class: 'lbl', text: '(ungrouped)' }), el('span', { class: 'cnt', text: String(tree.entries.length) })));
   }
 }
 
-function matches() {
+function getMatchingEntries() {
   const toks = $('#q').value.split(/\s+/).map(norm).filter(Boolean);
+  let pool = entries;
+  if (selGroup === '\u0001') pool = entries.filter(e => !e.path.includes('/'));
+  else if (selGroup) pool = entries.filter(e => e.path === selGroup || e.path.startsWith(selGroup + '/'));
+
+  if (!toks.length) return pool.map(e => ({ e, fields: e.fields.map((_, i) => i) }));
   const out = [];
-  for (const e of entries) {
-    if (selGroup) {
-      if (selGroup === UNGROUPED) {
-        if (e.path.includes('/')) continue;
-      } else {
-        if (e.path !== selGroup && !e.path.startsWith(selGroup + '/')) continue;
-      }
-    }
-    if (!toks.length || toks.every(t => norm(e.path).includes(t))) { out.push({ e, fields: e.fields.map((_, i) => i) }); continue; }
+  for (const e of pool) {
+    if (toks.every(t => norm(e.path).includes(t))) { out.push({ e, fields: e.fields.map((_, i) => i) }); continue; }
     const fi = [];
     e.fields.forEach((f, i) => {
       const hay = norm(e.path + '/' + f.k) + (f.s ? '' : norm(f.v));
@@ -441,45 +480,88 @@ const EYE = 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zm10 3a3 3 0 1 0 0-6
 const COPY = 'M9 9h11v11H9zM5 15H4V4h11v1';
 const EDIT = 'M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4';
 
-function render() {
-  renderGroups();
-  const list = $('#list'); list.replaceChildren(); rows = [];
-  const res = matches();
+function renderCard(m) {
+  const { e, fields } = m;
+  const parts = e.path.split('/'); const leaf = parts.pop();
+  const card = el('div', { class: 'card' },
+    el('div', { class: 'card-h' },
+      el('div', { class: 'name' }, parts.length ? el('small', { text: parts.join('/') + ' / ' }) : null, leaf),
+      el('button', { class: 'ghost', title: 'Edit', onclick: () => openEditor(e) }, icon(EDIT))));
+  for (const i of fields) {
+    const f = e.fields[i]; const id = e.path + '\u0000' + f.k;
+    const masked = f.s && !revealed.has(id);
+    const row = el('button', {
+      class: 'row', title: 'Click to copy',
+      onclick: ev => { if (!ev.target.closest('.acts')) copy(e, f); },
+    },
+      el('span', { class: 'k', text: f.k }),
+      el('span', { class: 'v' + (masked ? ' masked' : ''), text: masked ? '••••••••••' : f.v }),
+      el('span', { class: 'acts' },
+        f.s ? el('span', { class: 'ghost hint', title: revealed.has(id) ? 'Hide' : 'Show',
+          onclick: ev => { ev.stopPropagation(); revealed.has(id) ? revealed.delete(id) : revealed.add(id); render(); } }, icon(EYE)) : null,
+        el('span', { class: 'hint' }, icon(COPY))));
+    row.dataset.idx = rows.length;
+    rows.push({ row, e, f });
+    card.append(row);
+  }
+  return card;
+}
+
+// Render one level of the main grid with accordion headers for sub-folders
+function renderMainSection(node, prefix, container) {
+  // Sub-folder groups first
+  for (const [name, child] of [...node.children.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const fp = prefix ? prefix + '/' + name : name;
+    const isOpen = !mainCollapsed.has(fp);
+    const hdr = el('div', { class: 'mg-hdr' + (isOpen ? ' open' : '') });
+    hdr.append(
+      el('span', { class: 'mg-chev', text: '▶' }),
+      el('span', { class: 'mg-name', text: name }),
+      el('span', { class: 'mg-cnt', text: child.count + ' ' + (child.count === 1 ? 'entry' : 'entries') }),
+    );
+    hdr.onclick = () => { isOpen ? mainCollapsed.add(fp) : mainCollapsed.delete(fp); render(); };
+    container.append(hdr);
+    if (isOpen) {
+      const body = el('div', { class: 'mg-body' });
+      renderMainSection(child, fp, body);
+      container.append(body);
+    }
+  }
+  // Direct entries at this level
+  for (const m of node.entries) container.append(renderCard(m));
+}
+
+function renderMain() {
+  const list = $('#list');
+  list.replaceChildren();
+  rows = [];
+
+  const matches = getMatchingEntries();
+
   if (!entries.length) {
     list.append(el('div', { class: 'empty' },
       el('p', { text: 'Your vault is empty.' }),
-      el('p', {}, 'Press ', el('kbd', { text: 'n' }), ' or click + New, or run ', el('code', { text: 'vault import notes.txt' }))));
+      el('p', {}, 'Press ', el('kbd', { text: 'n' }), ' or click + New.')));
     return;
   }
-  if (!res.length) { list.append(el('div', { class: 'empty', text: 'Nothing matches.' })); return; }
-  for (const { e, fields } of res) {
-    const parts = e.path.split('/'); const leaf = parts.pop();
-    const card = el('div', { class: 'card' },
-      el('div', { class: 'card-h' },
-        el('div', { class: 'name' }, parts.length ? el('small', { text: parts.join('/') + ' / ' }) : null, leaf),
-        el('button', { class: 'ghost', title: 'Edit', onclick: () => openEditor(e) }, icon(EDIT))));
-    for (const i of fields) {
-      const f = e.fields[i]; const id = e.path + '\u0000' + f.k;
-      const masked = f.s && !revealed.has(id);
-      const row = el('button', {
-        class: 'row', title: 'Click to copy',
-        onclick: ev => { if (!ev.target.closest('.acts')) copy(e, f); },
-      },
-        el('span', { class: 'k', text: f.k }),
-        el('span', { class: 'v' + (masked ? ' masked' : ''), text: masked ? '••••••••••' : f.v }),
-        el('span', { class: 'acts' },
-          f.s ? el('span', { class: 'ghost hint', title: revealed.has(id) ? 'Hide' : 'Show',
-            onclick: ev => { ev.stopPropagation(); revealed.has(id) ? revealed.delete(id) : revealed.add(id); render(); } }, icon(EYE)) : null,
-          el('span', { class: 'hint' }, icon(COPY))));
-      row.dataset.idx = rows.length;
-      rows.push({ row, e, f });
-      card.append(row);
-    }
-    list.append(card);
+  if (!matches.length) {
+    list.append(el('div', { class: 'empty', text: 'Nothing matches.' }));
+    return;
   }
+
+  const tree = buildTree(matches);
+  // Navigate to the selected group node within the tree
+  const startNode = selGroup && selGroup !== '\u0001' ? (getNodeAt(tree, selGroup) || tree) : tree;
+  renderMainSection(startNode, selGroup && selGroup !== '\u0001' ? selGroup : '', list);
+
   if (sel >= rows.length) sel = rows.length - 1;
   if (sel < 0) sel = 0;
   highlight(false);
+}
+
+function render() {
+  renderGroups();
+  renderMain();
 }
 
 function highlight(scroll = true) {
@@ -526,6 +608,41 @@ async function refreshStatus() {
   footText();
 }
 
+/* ---- path builder ---- */
+let edPathSegs = [];
+
+function renderPathBuilder() {
+  const container = $('#pbSegs');
+  container.replaceChildren();
+  edPathSegs.forEach((seg, i) => {
+    if (i > 0) container.append(el('span', { class: 'seg-sep', text: '/' }));
+    const inp = el('input', { placeholder: 'folder name', spellcheck: 'false' });
+    inp.value = seg;
+    inp.addEventListener('input', () => { edPathSegs[i] = inp.value; });
+    inp.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); $('#edName').focus(); }
+      if (ev.key === 'Backspace' && inp.value === '') {
+        ev.preventDefault();
+        edPathSegs.splice(i, 1);
+        renderPathBuilder();
+        const inputs = container.querySelectorAll('input');
+        (inputs[i - 1] || $('#edName')).focus();
+      }
+    });
+    const pill = el('div', { class: 'seg-pill' }, inp,
+      el('button', { type: 'button', class: 'seg-rm', title: 'Remove folder level',
+        onclick: () => { edPathSegs.splice(i, 1); renderPathBuilder(); } }, '×'));
+    container.append(pill);
+  });
+}
+
+$('#pbAdd').onclick = () => {
+  edPathSegs.push('');
+  renderPathBuilder();
+  const inputs = $('#pbSegs').querySelectorAll('input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+};
+
 /* ---- editor ---- */
 let editing = null;
 function fieldRow(f = { k: '', v: '', s: false }) {
@@ -544,16 +661,24 @@ function fieldRow(f = { k: '', v: '', s: false }) {
 function openEditor(e, prefix) {
   editing = e || null;
   $('#edTitle').textContent = e ? 'Edit entry' : 'New entry';
-  if (prefix === undefined) {
-    prefix = (selGroup && selGroup !== UNGROUPED) ? selGroup + '/' : '';
+
+  if (e) {
+    const parts = e.path.split('/');
+    edPathSegs = parts.slice(0, -1);
+    $('#edName').value = parts[parts.length - 1];
+  } else {
+    const base = prefix !== undefined ? prefix : (selGroup && selGroup !== '\u0001' ? selGroup : '');
+    edPathSegs = base ? base.split('/').filter(Boolean) : [];
+    $('#edName').value = '';
   }
-  $('#edPath').value = e ? e.path : prefix;
+  renderPathBuilder();
+
   const box = $('#fields'); box.replaceChildren();
   const fs = e ? e.fields : [{ k: 'url', v: '', s: false }, { k: 'username', v: '', s: false }, { k: 'password', v: '', s: true }];
   for (const f of fs) box.append(fieldRow(f));
   $('#edDelete').hidden = !e;
   $('#editor').showModal();
-  (e ? box.querySelector('textarea') : $('#edPath')).focus();
+  setTimeout(() => (e ? box.querySelector('textarea') : $('#edName')).focus(), 30);
 }
 
 $('#addField').onclick = () => { const r = fieldRow(); $('#fields').append(r); r.querySelector('input').focus(); };
@@ -564,8 +689,10 @@ $('#edDelete').onclick = async () => {
 };
 $('#edForm').addEventListener('submit', async ev => {
   ev.preventDefault();
-  const path = $('#edPath').value.split('/').map(s => s.trim()).filter(Boolean).join('/');
-  if (!path) return toast('Give it a name', true);
+  const nameParts = $('#edName').value.split('/').map(s => s.trim()).filter(Boolean);
+  if (!nameParts.length) return toast('Give it a name', true);
+  const segs = edPathSegs.map(s => s.trim()).filter(Boolean);
+  const path = [...segs, ...nameParts].join('/');
   const fields = [...$('#fields').children].map(r => r._get()).filter(f => f.k || f.v);
   if (fields.some(f => !f.k)) return toast('Every field needs a name', true);
   const clash = entries.find(x => x.path.toLowerCase() === path.toLowerCase());
@@ -587,9 +714,8 @@ function applyLocal(chs) {
       if (idx >= 0) entries[idx] = entry; else entries.push(entry);
     }
   }
-  // reset selection if current group is now empty
-  if (selGroup && selGroup !== UNGROUPED && !entries.some(e => e.path === selGroup || e.path.startsWith(selGroup + '/'))) selGroup = '';
-  if (selGroup === UNGROUPED && !entries.some(e => !e.path.includes('/'))) selGroup = '';
+  if (selGroup && selGroup !== '\u0001' && !entries.some(e => e.path === selGroup || e.path.startsWith(selGroup + '/'))) selGroup = '';
+  if (selGroup === '\u0001' && !entries.some(e => !e.path.includes('/'))) selGroup = '';
 }
 
 async function save(chs, msg) {
@@ -601,7 +727,7 @@ async function save(chs, msg) {
     $('#editor').close();
     toast(r.syncError ? `${msg} (sync failed)` : msg, !!r.syncError);
     render();
-    refreshStatus(); // background — no await
+    refreshStatus();
   } catch (e) {
     toast(e.message, true);
   } finally {
@@ -623,8 +749,8 @@ function showCtxMenu(group, x, y) {
   });
 }
 function hideCtxMenu() { $('#ctx').classList.remove('show'); }
-document.addEventListener('click', hideCtxMenu);
-document.addEventListener('contextmenu', ev => { if (!ev.target.closest('#ctx')) hideCtxMenu(); });
+// Only close on left-click outside the menu (NOT on contextmenu events — those open a new menu)
+document.addEventListener('click', ev => { if (!ev.target.closest('#ctx')) hideCtxMenu(); });
 
 $('#ctxRename').onclick = async () => {
   const old = ctxTarget; hideCtxMenu();
@@ -645,7 +771,7 @@ $('#ctxRename').onclick = async () => {
 
 $('#ctxNew').onclick = () => {
   const g = ctxTarget; hideCtxMenu();
-  openEditor(null, g + '/');
+  openEditor(null, g);
 };
 
 $('#ctxCopy').onclick = () => {
