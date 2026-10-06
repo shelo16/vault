@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	version    = "0.1.9"
+	version    = "0.1.10"
 	defaultCmd = "" // set to "gui" for the windowless Windows build (vaultw.exe)
 )
 

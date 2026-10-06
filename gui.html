@@ -336,15 +336,15 @@ async function api(path, method = 'GET', body) {
 }
 
 // Tree node: { entries: [{e, fields}], children: Map<string, node>, count: number }
+// Every path segment gets its own node; entries live in the leaf node.
 function buildTree(matches) {
   const root = { entries: [], children: new Map(), count: matches.length };
   for (const m of matches) {
     const parts = m.e.path.split('/');
     let node = root;
-    for (let i = 0; i < parts.length - 1; i++) {
+    for (let i = 0; i < parts.length; i++) {
       if (!node.children.has(parts[i])) node.children.set(parts[i], { entries: [], children: new Map(), count: 0 });
       node = node.children.get(parts[i]);
-      node.count++;
     }
     node.entries.push(m);
   }
