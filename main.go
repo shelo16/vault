@@ -55,6 +55,7 @@ SYNC & SETUP
   vault sync                     sync now (edits sync automatically)
   vault passwd                   change the master password
   vault status                   where things are, sync state
+  vault update                   update vault to the latest release
   vault completion <shell>       tab completion: bash, zsh, fish or powershell (see README)
 `
 
@@ -166,6 +167,8 @@ func run(args []string) error {
 		return cmdPasswd()
 	case "completion":
 		return cmdCompletion(a)
+	case "update":
+		return cmdUpdate()
 	}
 
 	b, err := openBackend()
